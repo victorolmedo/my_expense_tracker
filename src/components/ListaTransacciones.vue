@@ -19,7 +19,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="t in ListaTransacciones" :key="t.id">
+        <tr v-for="t in transaccionesPaginadas" :key="t.id">
           <td>{{ t.id }}</td>
           <td>{{ t.tipo }}</td>
           <td>{{ t.monto }}</td>
@@ -29,6 +29,12 @@
         </tr>
       </tbody>
     </table>
+    <div class="paginacion">
+    <button @click="paginaActual--" :disabled="paginaActual === 1">Anterior</button>
+    <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+    <button @click="paginaActual++" :disabled="paginaActual === totalPaginas">Siguiente</button>
+  </div>
+
   </div>
 </template>
 
@@ -39,8 +45,11 @@ export default {
   data() {
     return {
       ListaTransacciones: [],
+      todas: [],
       fechaInicio: '',
-      fechaFin: ''
+      fechaFin: '',
+      paginaActual: 1,
+      porPagina: 10
     }
   },
   watch: {
@@ -70,7 +79,18 @@ export default {
   },
   mounted() {
     this.cargarTransacciones()
+  },
+  computed: {
+  transaccionesPaginadas() {
+    const inicio = (this.paginaActual - 1) * this.porPagina
+    const fin = inicio + this.porPagina
+    return this.ListaTransacciones.slice(inicio, fin)
+  },
+  totalPaginas() {
+    return Math.ceil(this.ListaTransacciones.length / this.porPagina)
   }
+}
+
 }
 </script>
 
@@ -115,5 +135,26 @@ button {
 
 button:hover {
   background-color: #218838;
+}
+.paginacion {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.paginacion button {
+  padding: 6px 12px;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.paginacion button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 </style>

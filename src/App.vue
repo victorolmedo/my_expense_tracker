@@ -1,10 +1,17 @@
 <template>
   <div class="container">
     <h1>Mi App de Finanzas</h1>
-    <FormularioTransaccion @transaccion-agregada="recargarTransacciones" />
-    <ListaTransacciones :actualizar="actualizar" />
+    <div class="grid">
+      <div class="col">
+        <FormularioTransaccion @transaccion-agregada="recargarTransacciones" />
+      </div>
+      <div class="col">
+        <ListaTransacciones :actualizar="actualizar" />
+      </div>
+    </div>
   </div>
 </template>
+
 
 
 <script>
@@ -42,17 +49,23 @@ h1 {
   color: #333;
 }
 
-h2 {
-  margin-top: 40px;
-  color: #444;
-}
-
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: auto;
   background: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.grid {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.col {
+  flex: 1;
+  min-width: 0;
 }
 </style>
