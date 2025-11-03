@@ -16,6 +16,7 @@
           <th>Categoría</th>
           <th>Descripción</th>
           <th>Fecha</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -26,6 +27,11 @@
           <td>{{ t.categoria }}</td>
           <td>{{ t.descripcion }}</td>
           <td>{{ t.fecha }}</td>
+          <td>
+            <button @click="editar(t)">✏️</button>
+            <button @click="eliminar(t.id)">🗑️</button>
+          </td>
+
         </tr>
       </tbody>
     </table>
@@ -35,6 +41,31 @@
     <button @click="paginaActual++" :disabled="paginaActual === totalPaginas">Siguiente</button>
   </div>
 
+  <div v-if="transaccionEditando">
+    <h3>Editar Transacción #{{ transaccionEditando.id }}</h3>
+    <form @submit.prevent="guardarEdicion">
+      <label>Tipo:</label>
+      <select v-model="transaccionEditando.tipo">
+        <option value="ingreso">Ingreso</option>
+        <option value="egreso">Egreso</option>
+      </select>
+
+      <label>Monto:</label>
+      <input type="number" v-model.number="transaccionEditando.monto" />
+
+      <label>Categoría:</label>
+      <input type="text" v-model="transaccionEditando.categoria" />
+
+      <label>Descripción:</label>
+      <input type="text" v-model="transaccionEditando.descripcion" />
+
+      <label>Fecha:</label>
+      <input type="date" v-model="transaccionEditando.fecha" />
+
+      <button type="submit">Guardar</button>
+      <button type="button" @click="transaccionEditando = null">Cancelar</button>
+    </form>
+  </div>
   </div>
 </template>
 
@@ -49,7 +80,8 @@ export default {
       fechaInicio: '',
       fechaFin: '',
       paginaActual: 1,
-      porPagina: 10
+      porPagina: 10,
+      transaccionEditando: null 
     }
   },
   watch: {
@@ -74,8 +106,33 @@ export default {
         const fecha = new Date(t.fecha)
         return fecha >= inicio && fecha <= fin
       })
-}
+    },
+    editar(t) {
+      this.transaccionEditando = { ...t }  // ✅ Copia del objeto para edición
+    },
+    eliminar(id) {
+      if (!confirm('¿Estás seguro de que deseas eliminar esta transacción?')) return
 
+      fetch(`http://localhost:8000/transacciones/${id}`, {
+        method: 'DELETE'
+      })
+        .then(() => this.cargarTransacciones())
+        .catch(err => console.error(err))
+    },
+    guardarEdicion() {
+      fetch(`http://localhost:8000/transacciones/${this.transaccionEditando.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(this.transaccionEditando)
+      })
+        .then(() => {
+          this.transaccionEditando = null
+          this.cargarTransacciones()
+        })
+        .catch(err => console.error(err))
+    }
   },
   mounted() {
     this.cargarTransacciones()

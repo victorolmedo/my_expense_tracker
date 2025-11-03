@@ -66,7 +66,20 @@ export default {
         console.error(error)
         this.mensaje = 'Error al registrar transacción'
       }
-    }
+    },
+        async eliminar(id) {
+        if (!confirm('¿Estás seguro de que deseas eliminar esta transacción?')) return
+
+        try {
+            await fetch(`http://localhost:8000/transacciones/${id}`, {
+            method: 'DELETE'
+            })
+            this.cargarTransacciones()
+        } catch (error) {
+            console.error('Error al eliminar:', error)
+        }
+        }
+
   }
 }
 </script>
