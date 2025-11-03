@@ -78,9 +78,42 @@ export default {
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 20px;
 }
-th, td {
+
+th {
+  background-color: #007acc;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+
+td {
   padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+input[type="date"] {
+  padding: 6px;
+  margin-right: 10px;
   border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 6px 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #218838;
 }
 </style>
