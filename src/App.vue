@@ -1,26 +1,30 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <h1>Mi App de Finanzas</h1>
+    <FormularioTransaccion @transaccion-agregada="recargarTransacciones" />
+    <ListaTransacciones :actualizar="actualizar" />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import ListaTransacciones from './components/ListaTransacciones.vue'
+import FormularioTransaccion from './components/FormularioTransaccion.vue'
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    ListaTransacciones,
+    FormularioTransaccion
+  },
+  data() {
+    return {
+      actualizar: false
+    }
+  },
+  methods: {
+    recargarTransacciones() {
+      this.actualizar = !this.actualizar  // ✅ Cambia valor para forzar actualización
+    }
   }
 }
-</script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+</script>

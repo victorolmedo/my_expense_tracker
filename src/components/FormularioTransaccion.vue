@@ -1,0 +1,90 @@
+<template>
+  <div>
+    <h2>Registrar Nueva Transacción</h2>
+    <form @submit.prevent="enviarTransaccion">
+      <label>Tipo:</label>
+      <select v-model="transaccion.tipo" required>
+        <option value="ingreso">Ingreso</option>
+        <option value="egreso">Egreso</option>
+      </select>
+
+      <label>Monto:</label>
+      <input type="number" v-model.number="transaccion.monto" required />
+
+      <label>Categoría:</label>
+      <input type="text" v-model="transaccion.categoria" required />
+
+      <label>Descripción:</label>
+      <input type="text" v-model="transaccion.descripcion" required />
+
+      <label>Fecha:</label>
+      <input type="date" v-model="transaccion.fecha" required />
+
+      <button type="submit">Guardar</button>
+    </form>
+
+    <p v-if="mensaje">{{ mensaje }}</p>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'FormularioTransaccion',
+  data() {
+    return {
+      transaccion: {
+        tipo: 'ingreso',
+        monto: null,
+        categoria: '',
+        descripcion: '',
+        fecha: ''
+      },
+      mensaje: ''
+    }
+  },
+  methods: {
+    async enviarTransaccion() {
+      try {
+        const res = await fetch('http://localhost:8000/transacciones', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.transaccion)
+        })
+        const data = await res.json()
+        this.mensaje = `Transacción #${data.id} registrada con éxito`
+        this.transaccion = {
+          tipo: 'ingreso',
+          monto: null,
+          categoria: '',
+          descripcion: '',
+          fecha: ''
+        }
+        this.$emit('transaccion-agregada')  // ✅ Emitimos evento
+      } catch (error) {
+        console.error(error)
+        this.mensaje = 'Error al registrar transacción'
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+}
+label {
+  margin-top: 10px;
+}
+input, select, button {
+  margin-top: 5px;
+  padding: 8px;
+}
+button {
+  margin-top: 15px;
+}
+</style>
