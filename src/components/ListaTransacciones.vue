@@ -6,6 +6,8 @@
     <label>Hasta:</label>
     <input type="date" v-model="fechaFin" />
     <button @click="filtrarPorFecha">Filtrar</button>
+    <button @click="exportarCSV">Exportar CSV</button>
+    <button @click="exportarPDF">Exportar PDF</button>
 
     <table>
       <thead>
@@ -70,7 +72,12 @@
 </template>
 
 <script>
+import jsPDF from 'jspdf/dist/jspdf.umd'
+import autoTable from 'jspdf-autotable'
+
+
 export default {
+  
   name: 'ListaTransacciones',
   props: ['actualizar'],
   data() {
@@ -135,7 +142,39 @@ export default {
           this.cargarTransacciones()
         })
         .catch(err => console.error(err))
+    },exportarCSV() {
+          const filas = this.transaccionesPaginadas.map(t => [
+            t.id, t.tipo, t.monto, t.categoria, t.descripcion, t.fecha
+          ])
+
+          const encabezado = ['ID', 'Tipo', 'Monto', 'Categoría', 'Descripción', 'Fecha']
+          const csv = [encabezado, ...filas]
+            .map(fila => fila.map(campo => `"${campo}"`).join(','))
+            .join('\n')
+
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+          const link = document.createElement('a')
+          link.href = URL.createObjectURL(blob)
+          link.download = `transacciones_${this.fechaInicio}_a_${this.fechaFin}.csv`
+          link.click()
+    },
+exportarPDF() {
+      const doc = new jsPDF()
+      doc.text(`Transacciones del ${this.fechaInicio} al ${this.fechaFin}`, 14, 15)
+
+      const filas = this.transaccionesPaginadas.map(t => [
+        t.id, t.tipo, t.monto, t.categoria, t.descripcion, t.fecha
+      ])
+
+      autoTable(doc, {
+        head: [['ID', 'Tipo', 'Monto', 'Categoría', 'Descripción', 'Fecha']],
+        body: filas,
+        startY: 20
+      })
+
+      doc.save(`transacciones_${this.fechaInicio}_a_${this.fechaFin}.pdf`)
     }
+
   },
   mounted() {
     this.cargarTransacciones()
