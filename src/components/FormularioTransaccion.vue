@@ -2,17 +2,21 @@
   <div>
     <h2>Registrar Nueva Transacción</h2>
     <form @submit.prevent="enviarTransaccion">
+
+      <label>Monto:</label>
+      <input type="number" v-model.number="transaccion.monto" required />
+
       <label>Tipo:</label>
       <select v-model="transaccion.tipo" required>
         <option value="ingreso">Ingreso</option>
         <option value="egreso">Egreso</option>
       </select>
 
-      <label>Monto:</label>
-      <input type="number" v-model.number="transaccion.monto" required />
-
       <label>Categoría:</label>
-      <input type="text" v-model="transaccion.categoria" required />
+      <select v-model="transaccion.categoria" required>
+        <option disabled value="">Seleccione una categoría</option>
+        <option v-for="cat in categoriasFiltradas" :key="cat" :value="cat">{{ cat }}</option>
+      </select>
 
       <label>Descripción:</label>
       <input type="text" v-model="transaccion.descripcion" required />
@@ -40,7 +44,11 @@ export default {
         descripcion: '',
         fecha: fechaHoy
       },
-      mensaje: ''
+      mensaje: '',
+      categorias: {
+                  ingreso: ['salario', 'Rentas', 'Intereses','Comisiones', 'otros'],
+                  egreso: ['Fijo', 'Educación', 'Alimentación', 'Transporte', 'Ahorros', 'Donaciones']
+                }
     }
   },
   methods: {
@@ -81,7 +89,11 @@ export default {
         }
         }
 
+  },computed: {
+  categoriasFiltradas() {
+    return this.categorias[this.transaccion.tipo] || []
   }
+}
 }
 </script>
 
