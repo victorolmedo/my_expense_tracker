@@ -1,13 +1,20 @@
 <template>
   <div>
     <h2>Lista de Transacciones</h2>
-    <label>Desde:</label>
-    <input type="date" v-model="fechaInicio" />
-    <label>Hasta:</label>
-    <input type="date" v-model="fechaFin" />
-    <button @click="filtrarPorFecha">Filtrar</button>
-    <button @click="exportarCSV">Exportar CSV</button>
-    <button @click="exportarPDF">Exportar PDF</button>
+      <div class="filtros">
+        <div class="fechas">
+          <label>Desde:</label>
+          <input type="date" v-model="fechaInicio" />
+          <label>Hasta:</label>
+          <input type="date" v-model="fechaFin" />
+          <button @click="filtrarPorFecha">Filtrar</button>
+
+        </div>
+        <div class="acciones">
+          <button @click="exportarCSV">Exportar CSV</button>
+          <button @click="exportarPDF">Exportar PDF</button>
+        </div>
+      </div>
 
     <table>
       <thead>
@@ -42,8 +49,8 @@
     <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
     <button @click="paginaActual++" :disabled="paginaActual === totalPaginas">Siguiente</button>
   </div>
-
-  <div v-if="transaccionEditando">
+<div v-if="transaccionEditando" class="modal-overlay" @click.self="transaccionEditando = null">
+  <div class="modal">
     <h3>Editar Transacción #{{ transaccionEditando.id }}</h3>
     <form @submit.prevent="guardarEdicion">
       <label>Tipo:</label>
@@ -56,7 +63,12 @@
       <input type="number" v-model.number="transaccionEditando.monto" />
 
       <label>Categoría:</label>
-      <input type="text" v-model="transaccionEditando.categoria" />
+      <select v-model="transaccionEditando.categoria">
+        <option disabled value="">Seleccione una categoría</option>
+        <option v-for="cat in categoriasEditables" :key="cat" :value="cat">{{ cat }}</option>
+      </select>
+
+
 
       <label>Descripción:</label>
       <input type="text" v-model="transaccionEditando.descripcion" />
@@ -68,6 +80,8 @@
       <button type="button" @click="transaccionEditando = null">Cancelar</button>
     </form>
   </div>
+</div>
+
   </div>
 </template>
 
@@ -82,14 +96,20 @@ export default {
   props: ['actualizar'],
   data() {
     const fechaHoy = new Date().toISOString().split('T')[0]  // ✅ yyyy-MM-dd
+    
     return {
       ListaTransacciones: [],
       todas: [],
       fechaInicio: fechaHoy,
       fechaFin: fechaHoy,
       paginaActual: 1,
-      porPagina: 10,
-      transaccionEditando: null 
+      porPagina: 9,
+      transaccionEditando: null, 
+      categorias: {
+        ingreso: ['salario', 'rentas', 'mesada', 'intereses', 'otros'],
+        egreso: ['fijo', 'educación', 'alimentación', 'transporte', 'ahorros', 'donaciones']
+      }
+
     }
   },
   watch: {
@@ -118,9 +138,12 @@ export default {
         this.paginaActual = 1
       },
     editar(t) {
-      this.transaccionEditando = { ...t }  // ✅ Copia del objeto para edición
+      this.transaccionEditando = { ...t }
+      if (!this.transaccionEditando.categoria) {
+        this.transaccionEditando.categoria = ''
+      }
     },
-    eliminar(id) {
+        eliminar(id) {
       if (!confirm('¿Estás seguro de que deseas eliminar esta transacción?')) return
 
       fetch(`http://localhost:8000/transacciones/${id}`, {
@@ -129,20 +152,47 @@ export default {
         .then(() => this.cargarTransacciones())
         .catch(err => console.error(err))
     },
-    guardarEdicion() {
-      fetch(`http://localhost:8000/transacciones/${this.transaccionEditando.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(this.transaccionEditando)
-      })
-        .then(() => {
-          this.transaccionEditando = null
-          this.cargarTransacciones()
-        })
-        .catch(err => console.error(err))
-    },exportarCSV() {
+guardarEdicion() {
+  if (!this.validarEdicion()) return
+
+  fetch(`http://localhost:8000/transacciones/${this.transaccionEditando.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(this.transaccionEditando)
+  })
+    .then(() => {
+      this.transaccionEditando = null
+      this.cargarTransacciones()
+    })
+    .catch(err => console.error(err))
+}
+,validarEdicion() {
+  const t = this.transaccionEditando
+  if (!t.tipo || !['ingreso', 'egreso'].includes(t.tipo)) {
+    alert('Tipo inválido')
+    return false
+  }
+  if (!t.monto || t.monto <= 0) {
+    alert('Monto debe ser mayor a 0')
+    return false
+  }
+  if (!t.categoria || !this.categorias[t.tipo].includes(t.categoria)) {
+    alert('Categoría inválida para el tipo seleccionado')
+    return false
+  }
+  if (!t.descripcion.trim()) {
+    alert('Descripción requerida')
+    return false
+  }
+  if (!t.fecha || isNaN(new Date(t.fecha))) {
+    alert('Fecha inválida')
+    return false
+  }
+  return true
+},
+exportarCSV() {
           const filas = this.transaccionesPaginadas.map(t => [
             t.id, t.tipo, t.monto, t.categoria, t.descripcion, t.fecha
           ])
@@ -187,6 +237,9 @@ exportarPDF() {
   },
   totalPaginas() {
     return Math.ceil(this.ListaTransacciones.length / this.porPagina)
+  },   categoriasEditables() {
+    const tipo = this.transaccionEditando?.tipo
+    return tipo && this.categorias[tipo] ? this.categorias[tipo] : []
   }
 }
 
@@ -256,4 +309,52 @@ button:hover {
   background-color: #ccc;
   cursor: not-allowed;
 }
+.filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.fechas {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+}
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
 </style>

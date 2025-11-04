@@ -100,27 +100,25 @@ export default {
 
 <style scoped>
 form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px; /* ✅ Limita el ancho */
   margin-top: 20px;
 }
 
 label {
-  grid-column: span 2;
   font-weight: bold;
   margin-top: 10px;
 }
 
 input, select {
-  grid-column: span 2;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
 button {
-  grid-column: span 2;
   padding: 10px;
   background-color: #007acc;
   color: white;
@@ -133,10 +131,5 @@ button:hover {
   background-color: #005fa3;
 }
 
-p {
-  grid-column: span 2;
-  color: green;
-  margin-top: 10px;
-}
 </style>
 

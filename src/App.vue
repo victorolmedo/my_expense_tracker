@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Mi App de Finanzas</h1>
+    <h1>Finanzas</h1>
     <div class="grid">
       <div class="col">
         <FormularioTransaccion @transaccion-agregada="recargarTransacciones" />
